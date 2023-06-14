@@ -1,0 +1,31 @@
+---
+my_aws_region: eu-west-1
+my_aws_vpc: my-vpc
+my_aws_vpc_cidr: 192.168.1.0/24
+my_aws_public_key: ~/.ssh/aws_key.pub
+
+my_aws_vms:
+  - name: vm1
+    #ostype: Linux
+    #priority: Spot
+    size: t2.xlarge
+    #username: ansible
+    #password: Redhat1223334444
+    #asg: "{{ my_azure_public_asg }}"
+    image: ami-013d87f7217614e10
+    #  publisher: RedHat
+    #  offer: RHEL
+    #  sku: '9_2'
+    #  version: latest
+  - name: vm2
+    #ostype: Linux
+    #priority: Spot
+    size: t2.xlarge
+    #username: ansible
+    #password: Redhat1223334444
+    #asg: "{{ my_azure_public_asg }}"
+    image: ami-013d87f7217614e10
+    #  publisher: RedHat
+    #  offer: RHEL
+    #  sku: '9_2'
+    #  version: latest

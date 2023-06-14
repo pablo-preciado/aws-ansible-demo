@@ -1,0 +1,47 @@
+---
+- name: AWS - Create virtual Machine EC2
+  hosts: localhost
+
+  tasks:
+
+    - name: Get subnet info
+      amazon.aws.ec2_vpc_subnet_info:
+        region: "{{ my_aws_region }}"
+        filters:
+          "tag:Name": "{{ my_aws_vpc }}-subnet"
+      register: aws_subnet
+    
+    - name: Save subnet id
+      set_fact:
+        aws_subnet_id: "{{ aws_subnet.subnets|map(attribute='id')| list | last }}"
+    
+    #- name: Find ami
+    #  amazon.aws.ec2_ami_info:
+    #    region: "{{ my_aws_region }}"
+    #    owners: "{{ aws_image_owners | default(omit)}}"
+    #    filters:
+    #      name: "{{ aws_image_filter }}"
+    #      architecture: "{{ aws_image_architecture | default(omit) }}"
+    #  register: amis
+    
+    #- name: Save ami
+    #  set_fact:
+    #    aws_instance_ami: >
+    #      {{ (amis.images | selectattr('name', 'defined') | sort(attribute='creation_date'))[-2] }}
+    
+    - name: Create instance
+      loop: "{{ my_aws_vms }}"
+      amazon.aws.ec2_instance:
+        network:
+          assign_public_ip: yes
+        key_name: "{{ my_aws_vpc }}-demo-key"
+        instance_type: "{{ item.size }}"
+        image_id: "{{ item.image }}" #"{{ aws_instance_ami.image_id }}"
+        region: "{{ my_aws_region }}"
+        security_group: "{{ my_aws_vpc }}-sec-group"
+        tags:
+          info: "This instance was built by Red Hat Product Demos"
+          Name: "{{ item.name }}"
+        vpc_subnet_id: "{{ aws_subnet_id }}"
+        #user_data: "{{ lookup('template', aws_userdata_template+'.j2', template_vars=dict(aws_vm_name=vm_name)) }}"
+      register: aws_vm_output

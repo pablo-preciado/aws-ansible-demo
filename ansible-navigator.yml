@@ -1,0 +1,12 @@
+ansible-navigator:
+  execution-environment:
+    pull:
+      policy: missing
+    image: quay.io/redhat_emp1/ee-ansible-ssa:latest
+    environment-variables:
+      pass:
+        - AWS_ACCESS_KEY_ID
+        - AWS_SECRET_ACCESS_KEY
+  playbook-artifact:
+    enable: false
+  mode: stdout

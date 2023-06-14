@@ -1,0 +1,121 @@
+---
+- name: AWS - Create infrastructure
+  hosts: localhost
+
+  tasks:
+
+    - name: Create VPC
+      register: aws_vpc
+      amazon.aws.ec2_vpc_net:
+        state: present
+        name: "{{ my_aws_vpc }}"
+        cidr_block: "{{ my_aws_vpc_cidr }}"
+        tenancy: default
+        region: "{{ my_aws_region }}"
+        tags:
+          owner: "{{ my_aws_vpc }}"
+    
+    - name: Create internet gateway
+      register: aws_gateway
+      amazon.aws.ec2_vpc_igw:
+        state: present
+        vpc_id: "{{ aws_vpc.vpc.id }}"
+        region: "{{ my_aws_region }}"
+        tags:
+          Name: "{{ my_aws_vpc }}-vpc-igw"
+          owner: "{{ my_aws_vpc }}"
+      
+    - name: Create security group internal
+      amazon.aws.ec2_group: 
+        state: present
+        name: "{{ my_aws_vpc }}-sec-group"
+        region: "{{ my_aws_region }}"
+        description: Inbound WinRM and RDP, http for demo servers and internal AD ports 
+        rules:
+          - proto: tcp 
+            ports:
+              - 80 # HTTP
+              - 443 # HTTPS
+              - 22 # SSH
+              - 5986 # WinRM
+              - 3389 # RDP
+            cidr_ip: 0.0.0.0/0
+          - proto: icmp
+            to_port: -1
+            from_port: -1
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            ports: 
+              - 80 # HTTP
+              - 5986 # WinRM
+              - 3389 # RDP
+              - 53 # DNS
+              - 88 # Kerberos Authentication
+              - 135 # RPC
+              - 139 # Netlogon
+              - 389 # LDAP
+              - 445 # SMB
+              - 464 # Kerberos Authentication
+              - 5432 # PostgreSQL
+              - 636 # LDAPS (LDAP over TLS)
+              - 873 # Rsync 
+              - 3268-3269 # Global Catalog 
+              - 1024-65535 # Ephemeral RPC ports
+            cidr_ip: 10.0.0.0/16
+          - proto: udp 
+            ports: 
+              - 53 # DNS
+              - 88 # Kerberos Authentication
+              - 123 # NTP
+              - 137-138 # Netlogon 
+              - 389 # LDAP 
+              - 445 # SMB
+              - 464 # Kerberos Authentication
+              - 1024-65535 # Ephemeral RPC ports
+            cidr_ip: 10.0.0.0/16
+        rules_egress:
+          - proto: -1 
+            cidr_ip: 0.0.0.0/0
+        vpc_id: "{{ aws_vpc.vpc.id }}"
+        tags:
+          Name: "{{ my_aws_vpc }}-sec-group"
+          owner: "{{ my_aws_vpc }}"
+    
+    - name: Create a subnet on the VPC
+      register: aws_subnet
+      amazon.aws.ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ aws_vpc.vpc.id }}"
+        cidr: "{{ my_aws_vpc_cidr }}"
+        region: "{{ my_aws_region }}"
+        map_public: yes
+        tags:
+          Name: "{{ my_aws_vpc }}-subnet"
+          owner: "{{ my_aws_vpc }}"
+    
+    - name: Create a subnet route table 
+      amazon.aws.ec2_vpc_route_table:
+        state: present 
+        vpc_id: "{{ aws_vpc.vpc.id }}"
+        region: "{{ my_aws_region }}"
+        subnets:
+          - "{{ aws_subnet.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0 
+            gateway_id: "{{ aws_gateway.gateway_id }}"
+        tags: 
+          Name: "{{ my_aws_vpc }}-vpc-rtbl"
+          owner: "{{ my_aws_vpc }}"
+    - name: Create file with keypair value
+      ansible.builtin.file:
+        state: absent
+        path: /tmp/aws-key.pub
+
+    - name: Create AWS keypair
+      amazon.aws.ec2_key:
+        name: "{{ my_aws_vpc }}-demo-key"
+        region: "{{ my_aws_region }}"
+        key_material: "{{ lookup('file', '{{ my_aws_public_key }}') }}"  #"{{ my_aws_public_key }}"
+        state: present
+        tags:
+          owner: "{{ my_aws_vpc }}"
