@@ -43,10 +43,10 @@
           info: "This instance was built by Red Hat Product Demos"
           Name: "{{ item.name }}"
         vpc_subnet_id: "{{ aws_subnet_id }}"
-        volumes:
-          - device_name: /dev/sda1
-            ebs:
-              volume_size: 16
-              delete_on_termination: true
+        #volumes:
+        #  - device_name: /dev/sda1
+        #    ebs:
+        #      volume_size: 16
+        #      delete_on_termination: true
             #user_data: "{{ lookup('template', aws_userdata_template+'.j2', template_vars=dict(aws_vm_name=vm_name)) }}"
       register: aws_vm_output
