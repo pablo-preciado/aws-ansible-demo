@@ -39,6 +39,7 @@
               - 22 # SSH
               - 5986 # WinRM
               - 3389 # RDP
+              - 27199 # Ansible receptor
             cidr_ip: 0.0.0.0/0
           - proto: icmp
             to_port: -1
@@ -59,6 +60,7 @@
               - 5432 # PostgreSQL
               - 636 # LDAPS (LDAP over TLS)
               - 873 # Rsync 
+              - 27199 # Ansible receptor
               - 3268-3269 # Global Catalog 
               - 1024-65535 # Ephemeral RPC ports
             cidr_ip: 10.0.0.0/16
@@ -70,6 +72,7 @@
               - 137-138 # Netlogon 
               - 389 # LDAP 
               - 445 # SMB
+              - 27199 # Ansible Receptor
               - 464 # Kerberos Authentication
               - 1024-65535 # Ephemeral RPC ports
             cidr_ip: 10.0.0.0/16
