@@ -109,10 +109,6 @@
         tags: 
           Name: "{{ my_aws_vpc }}-vpc-rtbl"
           owner: "{{ my_aws_vpc }}"
-    - name: Create file with keypair value
-      ansible.builtin.file:
-        state: absent
-        path: /tmp/aws-key.pub
 
     - name: Create AWS keypair
       amazon.aws.ec2_key:
